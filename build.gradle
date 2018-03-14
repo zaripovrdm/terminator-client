@@ -1,0 +1,141 @@
+apply plugin: 'war'
+apply plugin: 'maven'
+apply plugin: 'confluence'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+compileJava.options.encoding = 'UTF-8'
+    
+version = '2.0.2'
+group 'ru.raiffeisen.terminator'
+
+ext {
+    springVersion = '4.3.8.RELEASE'
+    springIntegrationVersion = '4.3.9.RELEASE'
+    artifactoryUser = artifactory_user ? artifactory_user : project.properties.get('artifactory_user')
+    artifactoryPassword = artifactory_password ? artifactory_password : project.properties.get('artifactory_password')
+}
+
+buildscript {
+    ext {
+        artifactoryUser = artifactory_user ? artifactory_user : project.properties.get('artifactory_user')
+        artifactoryPassword = artifactory_password ? artifactory_password : project.properties.get('artifactory_password')
+    }
+	repositories {
+        maven {
+            name = 'libsrelease'
+            url = 'https://artifactory.raiffeisen.ru/artifactory/rc-libs-release/'
+            credentials {
+                username "${artifactoryUser}"
+                password "${artifactoryPassword}"
+            }
+        }
+        maven {
+            name = 'artifactory'
+            url = 'https://artifactory.raiffeisen.ru/artifactory/repo1/'
+            credentials {
+                username "${artifactoryUser}"
+                password "${artifactoryPassword}"
+            }
+        }
+	}
+    dependencies {
+        classpath 'ru.raiffeisen.rmcp.gradle:confluence-plugin:1.2.0'
+    }
+}
+
+repositories {
+ 	mavenLocal()
+ 	
+    [
+        'artifactory': 'https://artifactory.raiffeisen.ru/artifactory/repo1/',
+        'extrelease': 'https://artifactory.raiffeisen.ru/artifactory/rc-ext-release/',
+        'libsrelease': 'https://artifactory.raiffeisen.ru/artifactory/rc-libs-release/',
+        'libssnapshot': 'https://artifactory.raiffeisen.ru/artifactory/rc-libs-snapshot/'
+    ].each {entry ->
+        maven {
+            name = entry.key
+            url = entry.value
+            credentials {
+                username "${artifactoryUser}"
+                password "${artifactoryPassword}"
+            }              
+        }
+    }
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: project.repositories.libsrelease.url) {
+            authentication(userName: "${artifactoryUser}", password: "${artifactoryPassword}")
+        }
+        snapshotRepository(url: project.repositories.libssnapshot.url) {
+            authentication(userName: "${artifactoryUser}", password: "${artifactoryPassword}")
+        }
+        pom.artifactId = 'terminator-client'
+    }
+}
+    
+war {
+	manifest.attributes(
+		'Manifest-Version': '1.0',
+		'Created-By': System.getProperty('java.version') + ' (' + System.getProperty('java.vendor') + ')',
+		'Implementation-Vendor': 'AO "Raiffeisenbank"',
+		'Implementation-Title': 'Terminator-Client',
+		'Implementation-Version': project.version,
+	)
+	archiveName 'terminator-client.war'
+}
+
+confluence {
+	parentPageId = 102510807
+	labels = ['terminator-client-version-entry']
+	titlePrefix = 'Terminator Client'
+}
+
+configurations.all {
+    exclude group: 'commons-logging'
+    exclude group: 'junit'
+    exclude group: 'org.apache.logging.log4j'
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+dependencies {
+	compile 'ch.qos.logback:logback-classic:1.1.3'
+	compile 'org.slf4j:jcl-over-slf4j:1.7.12'
+		
+	compile "org.springframework:spring-web:$springVersion"
+	compile "org.springframework:spring-oxm:$springVersion"
+	
+	compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+	compile "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
+	compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"	
+	compile 'org.springframework.integration:spring-integration-java-dsl:1.2.1.RELEASE'
+	
+	compile 'ru.raiffeisen.terminator:terminator-common:1.3.3'
+	
+	compile 'com.jolbox:bonecp:0.8.0.RELEASE'
+	compile 'com.ibm.db2:db2jcc4:4.19.26'
+	compile 'com.ibm.db2:db2jcc_license_cu:9.7.4'
+	compile 'org.postgresql:postgresql:9.4.1207.jre7'
+	compile 'com.oracle:ojdbc6:11.2.0.3.0'
+	
+	compile "javax.jms:javax.jms-api:2.0.1"
+    compile 'com.ibm:com.ibm.mq.mq-allclient:9.0.1'
+      
+    compile 'ru.raiffeisen.util:web-logger:1.0.3'
+      
+    providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
+		
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.testng:testng:6.8.21'
+    testCompile "org.springframework:spring-test:$springVersion"
+    testCompile 'com.h2database:h2:1.4.193'
+    testCompile 'org.apache.derby:derby:10.13.1.1'
+    testCompile 'org.apache.activemq:activemq-core:5.7.0'
+}
+
+test {
+    useTestNG()
+}

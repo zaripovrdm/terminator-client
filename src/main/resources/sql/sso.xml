@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="query.client.sso.select">
+		SELECT id FROM oauth.customer WHERE id = :CNUM
+	</entry>
+	
+	<entry key="query.client.sso.update">
+		UPDATE oauth.customer SET
+			branch_id = :BRANCH_ID,
+			employer_id = :EMPLOYER_ID,
+			category_id = :CATEGORY_ID,
+			first_name = :FIRST_NAME,
+			middle_name = :PATRONYMIC,
+			last_name = :LAST_NAME,
+			translit_name = :TRANSLIT_NAME,
+			birth_date = :BIRTH_DATE,
+			address = :LEGAL_ADDRESS,
+			inn = :INN,
+			email = :EMAIL,
+			mobile_phone = :MOBILE_PHONE,
+			pass_num = :PASSPORT_NUMBER,
+			pass_issuer = :PASSPORT_ISSUER,
+			pass_date = :PASSPORT_DATE,
+			resident = :RESIDENT,
+			modification = :LASTMODIFIED
+		WHERE id = :CNUM
+	</entry>
+	
+	<entry key="query.client.sso.insert">
+		INSERT INTO oauth.customer (
+			id,
+			branch_id,
+			employer_id,
+			category_id,
+			first_name,
+			middle_name,
+			last_name,
+			translit_name,
+			birth_date,
+			address,
+			inn,
+			email,
+			mobile_phone,
+			pass_num,
+			pass_serie,
+			pass_issuer,
+			pass_date,
+			resident,
+			creation
+		) VALUES (
+			:CNUM,
+			:BRANCH_ID,
+			:EMPLOYER_ID,
+			:CATEGORY_ID,
+			:FIRST_NAME,
+			:PATRONYMIC,
+			:LAST_NAME,
+			:TRANSLIT_NAME,
+			:BIRTH_DATE,
+			:LEGAL_ADDRESS,
+			:INN,
+			:EMAIL,
+			:MOBILE_PHONE,
+			:PASSPORT_NUMBER,
+			'XXX',
+			:PASSPORT_ISSUER,
+			:PASSPORT_DATE,
+			:RESIDENT,
+			:LASTMODIFIED
+		)	
+	</entry>
+	
+</properties>

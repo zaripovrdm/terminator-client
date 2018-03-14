@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="query.client.lastmodified.max">
+		SELECT MAX(LASTMODIFIED) FROM RBAICDB.CUSTOMERS WHERE LASTMODIFIED > :START
+	</entry>
+	
+	<entry key="query.clients.get">
+		<![CDATA[
+			SELECT
+				c1.CNUM                                                     AS CNUM,
+				c1.BRANCHID                                                 AS BRANCH_ID,
+				NULLIF(c1.COMPANYNUMBER, 0)                                 AS EMPLOYER_ID,
+				c1.CATEGORY                                                 AS CATEGORY_ID,
+				TRIM(c1.NAME)                                               AS FIRST_NAME,
+				NULLIF(TRIM(TRANSLATE(c1.PATRONYMIC, '', '-_.,')), '')      AS PATRONYMIC,
+				TRIM(c1.SURNAME)                                            AS LAST_NAME,
+				NULLIF(TRIM(c1.KNF0), '')                                   AS TRANSLIT_NAME,
+				c1.DATEOFBIRTH                                              AS BIRTH_DATE,
+				CASE
+					WHEN RTRIM(c3.KL_TOSTRING) != '' AND TRANSLATE(c3.KL_TOSTRING, '', ' ,-') != '' THEN TRIM(c3.KL_TOSTRING)
+					WHEN RTRIM(c1.LEGALADDRESS) != '' AND TRANSLATE(c1.LEGALADDRESS, '', ' ,-') != '' THEN TRIM(c1.LEGALADDRESS)
+				END                                                         AS LEGAL_ADDRESS,
+				CASE
+					WHEN LENGTH(c2.INN) = 12 AND TRANSLATE(c2.INN, '', '0123456789') = '' THEN TRIM(c2.INN)
+					ELSE NULL
+				END                                                         AS INN,
+				NULLIF(TRIM(c1.EMAIL), '')                                  AS EMAIL,				
+				CASE
+					WHEN TRIM(c1.CURRENTADDRESSFAX) NOT IN ('0', '', ',', '-') THEN TRIM(c1.CURRENTADDRESSFAX)
+					ELSE NULL  
+				END                                                         AS MOBILE_PHONE,
+				UPPER(TRIM(CLEARED_PASSPORTNUMBER))                         AS PASSPORT_NUMBER,
+				TRIM(c1.ISSUEDBY)                                           AS PASSPORT_ISSUER,
+				c1.ISSUEDDATE                                               AS PASSPORT_DATE,
+				DECODE(c1.RESIDENTTYPE, 'R', 1, 0)                          AS RESIDENT,
+				NVL(c1.COMPLIANCE, 0)                                       AS COMPLIANCE,
+				NVL(c1.PEP, 0)                                              AS PEP_TYPE_ID,
+				c1.LASTMODIFIED                                             AS LASTMODIFIED
+			FROM RBAICDB.CUSTOMERS_PLUS c1
+			LEFT OUTER JOIN RBAICDB.CUSTOMERS_EMP c2 ON c1.CNUM = c2.CNUM
+			LEFT OUTER JOIN RBAICDB.KL_ADDRESS c3 ON c2.LEGALADDRESS_ID = c3.ADDRESS_ID
+			WHERE c1.LASTMODIFIED > :START AND c1.LASTMODIFIED <= :END
+		]]>
+	</entry>
+	
+	<entry key="query.client.bundles.get">
+		<![CDATA[
+			SELECT
+				CNUM,
+				CASE
+					WHEN UPPER(TRIM(BUNDLECODE)) IN ('UNKN', '') OR BUNDLECODE IS NULL THEN 'NONE'
+					ELSE UPPER(TRIM(BUNDLECODE))
+				END   AS BUNDLE_TYPE_ID
+			FROM RBAICDB.CUSTOMERS_EMP
+		]]>
+	</entry>
+</properties>
